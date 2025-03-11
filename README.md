@@ -22,7 +22,33 @@ pip install -r requirements.txt
 ```
 Reference: https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
 
-4. Run the application
+4. Configure the database
+    1. If you uses local MySQL server, logging in to MySQL
+    ```bash
+    psql -U postgres
+    ```
+    create a new database for this project
+    ```sql
+    CREATE DATABASE papermanager_db;
+    ```
+    2. Or if you prefer using Docker, run a docker container
+    ```bash
+    docker run --name papermanager-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=papermanager_db -p 5432:5432 -d postgres:latest
+    ```
+    3. Create a ```.env``` file in directory PaperManager, and configure this fields in this file
+    ```
+    DB_PASSWORD=<password_of_mysql>
+    DB_HOSTNAME=127.0.0.1 # If you are running a MySQL container using Docker on Linux or WSL2, use 'localhost'
+    DB_PORT=5432
+    ```
+
+4. Run the database migrations to create database structures
+
+```python
+python manage.py migrate
+```
+
+5. Run the application
 
 ```python
 python manage.py runserver
