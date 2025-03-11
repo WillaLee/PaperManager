@@ -1,4 +1,4 @@
-### To deploy locally
+## To deploy locally
 
 1. Clone the repo to local
 
@@ -37,7 +37,7 @@ Reference: https://packaging.python.org/en/latest/guides/installing-using-pip-an
     ```
     3. Create a ```.env``` file in directory PaperManager, and configure this fields in this file
     ```
-    DB_PASSWORD=<password_of_mysql>
+    DB_PASSWORD=<password_of_postgresql>
     DB_HOSTNAME=127.0.0.1 # If you are running a MySQL container using Docker on Linux or WSL2, use 'localhost'
     DB_PORT=5432
     ```
@@ -54,7 +54,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-### To contribute
+## To contribute
 
 1. Before pushing your contribute, checkout to main and pull the latest changes and merge with your own branch
 ```
