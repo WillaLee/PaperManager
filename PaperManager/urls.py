@@ -16,10 +16,14 @@ Including another URLconf
 """
 from rest_framework.routers import DefaultRouter
 from PaperSummarizer import views
+from django.urls import path, include
 
 router = DefaultRouter()
 router.register(r'summaries', views.SummaryViewSet, basename='summary')
 router.register(r'labels', views.LabelViewSet, basename='label')
 router.register(r'papers', views.PaperViewSet, basename='paper')
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+    path('upload/', views.upload_and_extract_text, name='upload_and_extract_text'),
+]
