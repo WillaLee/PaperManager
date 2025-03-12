@@ -29,5 +29,3 @@ urlpatterns = [
     path('', include(router.urls)),
     path('upload/', views.FileUploadView.as_view(), name='file-upload'),
 ]
-
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
