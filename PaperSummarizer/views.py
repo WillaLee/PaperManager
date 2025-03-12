@@ -138,5 +138,21 @@ class LabelViewSet(viewsets.ModelViewSet):
 # function to accept a PDF and return the text
 @api_view(['POST'])
 def upload_and_extract_text(request):
-    # TODO: Implement the logic to accept a PDF and return the text
-    return Response({"Text": "Text of the paper."})
+    if 'file' not in request.FILES:
+        return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+    pdf_file = request.FILES['file']
+    
+    if not pdf_file.name.endswith('.pdf'):
+        return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Read the uploaded PDF file using PyMuPDF
+        with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
+            extracted_text = ""
+            for page in doc:
+                extracted_text += page.get_text()
+        
+        return Response({"text": extracted_text}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
