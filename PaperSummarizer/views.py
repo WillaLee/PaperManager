@@ -31,12 +31,6 @@ class PaperViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    # function for attaching a label to a paper
-    @action(detail=True, methods=['post'], url_path='attach-label-to-paper')
-    def attach_label_to_paper(self, request, pk=None):
-        # TODO: Implement the logic for attaching a label to a paper
-        return Response({"message": "Label attached to paper successfully."})
-
     # function for retrieving the summary of a paper as a string
     @action(detail=True, methods=['get'], url_path='get-summary')
     def get_summary(self, request, pk=None):
