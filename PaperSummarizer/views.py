@@ -1,6 +1,7 @@
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, views
+from rest_framework.parsers import MultiPartParser, FileUploadParser
 from django.http import HttpResponse, JsonResponse
 import fitz
 
@@ -135,24 +136,29 @@ class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
 
-# function to accept a PDF and return the text
-@api_view(['POST'])
-def upload_and_extract_text(request):
-    if 'file' not in request.FILES:
-        return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+class FileUploadView(views.APIView):
+    parser_classes = (FileUploadParser, )
 
-    pdf_file = request.FILES['file']
-    
-    if not pdf_file.name.endswith('.pdf'):
-        return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    try:
-        # Read the uploaded PDF file using PyMuPDF
-        with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
-            extracted_text = ""
-            for page in doc:
-                extracted_text += page.get_text()
+    # function to convert uploaded pdf file to text
+    # WARNING: to make a put request to this api, add this header: Content-Disposition: attachment; filename=<insert-your-file-name>
+    def put(self, request, format='pdf'):
+        # Check if the file is present in the request
+        if 'file' not in request.FILES:
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the uploaded file from request.FILES
+        pdf_file = request.FILES['file']
+
+        if not pdf_file.name.endswith('.pdf'):
+            return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({"text": extracted_text}, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            # Process the PDF with PyMuPDF
+            with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
+                extracted_text = ""
+                for page in doc:
+                    extracted_text += page.get_text()
+            
+            return Response({"text": extracted_text}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
