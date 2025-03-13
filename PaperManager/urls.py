@@ -27,5 +27,4 @@ router.register(r'papers', views.PaperViewSet, basename='paper')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('upload/', views.FileUploadView.as_view(), name='file-upload'),
 ]
