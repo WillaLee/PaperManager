@@ -61,7 +61,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             return Response({"message": "Paper not found."}, status=404)
     
     # function to search for existing labels related to this paper
-    @action(detail=True, methods=['post'], url_path='search-labels')
+    @action(detail=True, methods=['get'], url_path='search-labels')
     def fuzzy_search_labels_by_keywords(self, request, pk=None):
         try:
             # Fetch the paper using the paper ID (pk is the paper ID)
@@ -81,7 +81,22 @@ class PaperViewSet(viewsets.ModelViewSet):
         
         except Paper.DoesNotExist:
             return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # TODO: Implement function to get keywords of this paper
+    @action(detail=True, methods=['get'], url_path='get-keywords')
+    def get_keywords(self, request, pk=None):
+        try:
+            # Fetch the paper using the paper ID (pk is the paper ID)
+            paper = self.get_object()
+
+            # Get the key_words from the paper model
+            key_words = paper.key_words
+
+            return Response(key_words, status=status.HTTP_200_OK)
         
+        except Paper.DoesNotExist:
+            return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
+
     # TODO: implement the function to add a label to a paper
     @action(detail=True, methods=['post'], url_path='add-label')
     def add_label(self, request, pk=None):
