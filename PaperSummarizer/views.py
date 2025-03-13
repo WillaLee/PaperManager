@@ -1,12 +1,16 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import viewsets, status, views
+from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser
 from django.http import HttpResponse
+from django.db.models import Q, Value
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db import transaction
 import fitz
 
-from .models import Summary, Paper, Label
-from .serializers import SummarySerializer, PaperSerializer, LabelSerializer
+
+from .models import Paper, Summary, Label
+from .serializers import PaperSerializer, SummarySerializer, LabelSerializer
 
 class SummaryViewSet(viewsets.ModelViewSet):
     queryset = Summary.objects.all()
@@ -15,34 +19,6 @@ class SummaryViewSet(viewsets.ModelViewSet):
 class PaperViewSet(viewsets.ModelViewSet):
     queryset = Paper.objects.all()
     serializer_class = PaperSerializer
-    parser_classes = (MultiPartParser, )
-
-    def create(self, request):
-        if 'file' not in request.FILES:
-            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Get the uploaded file from request.FILES
-        pdf_file = request.FILES['file']
-
-        if not pdf_file.name.endswith('.pdf'):
-            return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        pdf_bytes = pdf_file.read()
-        
-        # create a paper object
-        Paper.objects.create(title=pdf_file.name, file=pdf_file)
-        
-        try:
-            # Process the PDF with PyMuPDF
-            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
-                extracted_text = ""
-                for page in doc:
-                    extracted_text += page.get_text()
-            
-            return Response({"text": extracted_text}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
     # function to retrieve papers by label name
     @action(detail=False, methods=['get'], url_path='retrieve-by-label-name/(?P<label_name>[^/.]+)')
@@ -63,118 +39,121 @@ class PaperViewSet(viewsets.ModelViewSet):
     # function for retrieving the summary of a paper as a string
     @action(detail=True, methods=['get'], url_path='get-summary')
     def get_summary(self, request, pk=None):
-        # TODO: Implement the logic to retrieve the summary of a paper
-        summary = Summary.objects.first()  # Just an example
-        return Response({"summary": "Summary of the paper."})
+        summary = Summary.objects.filter(paper_id=pk).first()
+        if summary:
+            return Response({"summary": summary.text})
+        return Response({"message": "Summary not found"}, status=404)   
     
     # function for getting summary in LaTeX format
     @action(detail=True, methods=['get'], url_path='get-summary-latex')
     def get_summary_latex(self, request, pk=None):
-        try:
-            # Retrieve the paper by ID
-            paper = self.get_object()  # Fetch paper using the pk
+        paper = self.get_object()
+        summary = getattr(paper, 'summary', None)
 
-            # Assuming Paper model has a relationship with Summary
-            summary = paper.summary  # Retrieve the summary related to this paper
-
-            # Check if summary exists and return its LaTeX format
-            if summary and summary.latex_format:
-                response = HttpResponse(summary.latex_format, content_type='application/x-tex')
-                response['Content-Disposition'] = f'attachment; filename="summary_{paper.id}.tex"'
-                return response
-            else:
-                return Response({"message": "No summary available. Please try again."}, status=404)
+        if summary and summary.latex_format:
+            response = HttpResponse(summary.latex_format, content_type='application/x-tex')
+            response['Content-Disposition'] = f'attachment; filename="summary_{paper.id}.tex"'
+            return response
         
-        except Paper.DoesNotExist:
-            return Response({"message": "Paper not found."}, status=404)
+        return Response({"message": "No summary available. Please try again."}, status=404)
+
     
-    # function to search for existing labels related to this paper
-    @action(detail=True, methods=['get'], url_path='search-labels')
-    def fuzzy_search_labels_by_keywords(self, request, pk=None):
-        try:
-            # Fetch the paper using the paper ID (pk is the paper ID)
-            paper = self.get_object()
+    # function to search for existing labels related to this paper)
+    @action(detail=True, methods=['get'], url_path='related-labels')
+    def fuzzy_search_labels(self, request, pk=None):
+        paper = self.get_object()
+        if not paper.key_words:
+            return Response({"error": "No keywords available"}, status=404)
 
-            # Get the key_words from the paper model
-            key_words = paper.key_words
+        search_terms = [t.strip() for t in paper.key_words.split(',') if t.strip()]
+        threshold = float(request.query_params.get("threshold", 0.2))  # Default 0.2
+        labels = Label.objects.annotate(
+            similarity=TrigramSimilarity('name', Value(' '.join(search_terms)))
+        ).filter(similarity__gt=threshold).order_by('-similarity')[:10]
 
-            # Perform fuzzy search for labels related to these key words
-            # TODO: Implement fuzzy search logic
-            # For now, assume that we're just returning some labels with a dummy filter
-            labels = Label.objects.filter(name__icontains="sample")  # Dummy filter to show structure
-
-            # Serialize the labels to return as response
-            label_serializer = LabelSerializer(labels, many=True)
-            return Response(label_serializer.data, status=status.HTTP_200_OK)
-        
-        except Paper.DoesNotExist:
-            return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(LabelSerializer(labels, many=True).data)
     
-    # TODO: Implement function to get keywords of this paper
+    # Implement function to get keywords of this paper
     @action(detail=True, methods=['get'], url_path='get-keywords')
     def get_keywords(self, request, pk=None):
         try:
-            # Fetch the paper using the paper ID (pk is the paper ID)
             paper = self.get_object()
-
-            # Get the key_words from the paper model
-            key_words = paper.key_words
-
-            return Response(key_words, status=status.HTTP_200_OK)
+            
+            # Get raw keywords string from the paper
+            raw_keywords = paper.key_words
+            
+            # Process keywords into a clean list
+            if not raw_keywords:  # Handles None or empty string
+                return Response([], status=status.HTTP_200_OK)
+                
+            # Split, clean, and filter keywords
+            processed_keywords = [
+                kw.strip() 
+                for kw in raw_keywords.split(',') 
+                if kw.strip()  # Remove empty strings
+            ]
+            
+            return Response(processed_keywords, status=status.HTTP_200_OK)
         
         except Paper.DoesNotExist:
-            return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Paper not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-    # TODO: implement the function to add a label to a paper
-    @action(detail=True, methods=['put'], url_path='add-label')
+    #add a label to a paper
+    @action(detail=True, methods=['post'], url_path='add-label')
     def add_label(self, request, pk=None):
+        paper = self.get_object()
+        label_id = request.data.get('label_id')
+        
+        if not label_id:
+            return Response({"error": "label_id required"}, status=400)
+            
         try:
-            # Get the paper object by primary key (pk)
-            paper = self.get_object()
-
-            # Extract label ID from the request
-            label_id = request.data.get('label_id')
-
-            # Find the label by ID
             label = Label.objects.get(id=label_id)
-
-            # Add the label to the paper's label list
-            paper.label.add(label)
-
-            # Return response with updated paper data
-            paper_serializer = PaperSerializer(paper)
-            return Response(paper_serializer.data, status=status.HTTP_200_OK)
-
-        except Paper.DoesNotExist:
-            return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
+            if not paper.labels.filter(id=label_id).exists():
+                paper.labels.add(label)
+                return Response(PaperSerializer(paper).data, status=200)
+            return Response({"message": "Label already added"}, status=400)
         except Label.DoesNotExist:
-            return Response({"error": "Label not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Label not found"}, status=404)
 
-    # TODO: implement the function to to remove a label from a paper
-    @action(detail=True, methods=['put'], url_path='remove-label')
+    #remove a label from a paper
+    @action(detail=True, methods=['post'], url_path='remove-label')
     def remove_label(self, request, pk=None):
+        paper = self.get_object()
+        label_id = request.data.get('label_id')
+
+        if not label_id:
+            return Response({"error": "label_id required"}, status=400)
+
         try:
-            # Get the paper object by primary key (pk)
-            paper = self.get_object()
-
-            # Extract label ID from the request
-            label_id = request.data.get('label_id')
-
-            # Find the label by ID
             label = Label.objects.get(id=label_id)
-
-            # Remove the label from the paper's label list
-            paper.label.remove(label)
-
-            # Return response with updated paper data
-            paper_serializer = PaperSerializer(paper)
-            return Response(paper_serializer.data, status=status.HTTP_200_OK)
-
-        except Paper.DoesNotExist:
-            return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
+            if paper.labels.filter(id=label_id).exists():
+                paper.labels.remove(label)
+                return Response(PaperSerializer(paper).data, status=200)
+            return Response({"message": "Label not found on this paper"}, status=400)
         except Label.DoesNotExist:
-            return Response({"error": "Label not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Label not found"}, status=404)
 
+        
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
+
+class FileUploadView(views.APIView):
+    parser_classes = (MultiPartParser, )
+
+    def put(self, request, format='pdf'):
+        file_obj = request.FILES.get('file')
+        if not file_obj or not file_obj.name.endswith('.pdf'):
+            return Response({"error": "Invalid file"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with fitz.open(stream=file_obj, filetype="pdf") as doc:
+                extracted_text = "".join([page.get_text() for page in doc])
+                return Response({"text": extracted_text}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
