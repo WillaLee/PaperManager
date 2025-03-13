@@ -1,8 +1,8 @@
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets, status, views
-from rest_framework.parsers import MultiPartParser, FileUploadParser
-from django.http import HttpResponse, JsonResponse
+from rest_framework.parsers import MultiPartParser
+from django.http import HttpResponse
 import fitz
 
 from .models import Summary, Paper, Label
@@ -15,6 +15,34 @@ class SummaryViewSet(viewsets.ModelViewSet):
 class PaperViewSet(viewsets.ModelViewSet):
     queryset = Paper.objects.all()
     serializer_class = PaperSerializer
+    parser_classes = (MultiPartParser, )
+
+    def create(self, request):
+        if 'file' not in request.FILES:
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the uploaded file from request.FILES
+        pdf_file = request.FILES['file']
+
+        if not pdf_file.name.endswith('.pdf'):
+            return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        pdf_bytes = pdf_file.read()
+        
+        # create a paper object
+        Paper.objects.create(title=pdf_file.name, file=pdf_file)
+        
+        try:
+            # Process the PDF with PyMuPDF
+            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+                extracted_text = ""
+                for page in doc:
+                    extracted_text += page.get_text()
+            
+            return Response({"text": extracted_text}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     # function to retrieve papers by label name
     @action(detail=False, methods=['get'], url_path='retrieve-by-label-name/(?P<label_name>[^/.]+)')
@@ -98,7 +126,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             return Response({"error": "Paper not found"}, status=status.HTTP_404_NOT_FOUND)
 
     # TODO: implement the function to add a label to a paper
-    @action(detail=True, methods=['post'], url_path='add-label')
+    @action(detail=True, methods=['put'], url_path='add-label')
     def add_label(self, request, pk=None):
         try:
             # Get the paper object by primary key (pk)
@@ -123,7 +151,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             return Response({"error": "Label not found"}, status=status.HTTP_404_NOT_FOUND)
 
     # TODO: implement the function to to remove a label from a paper
-    @action(detail=True, methods=['post'], url_path='remove-label')
+    @action(detail=True, methods=['put'], url_path='remove-label')
     def remove_label(self, request, pk=None):
         try:
             # Get the paper object by primary key (pk)
@@ -150,30 +178,3 @@ class PaperViewSet(viewsets.ModelViewSet):
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
-
-class FileUploadView(views.APIView):
-    parser_classes = (FileUploadParser, )
-
-    # function to convert uploaded pdf file to text
-    # WARNING: to make a put request to this api, add this header: Content-Disposition: attachment; filename=<insert-your-file-name>
-    def put(self, request, format='pdf'):
-        # Check if the file is present in the request
-        if 'file' not in request.FILES:
-            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Get the uploaded file from request.FILES
-        pdf_file = request.FILES['file']
-
-        if not pdf_file.name.endswith('.pdf'):
-            return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            # Process the PDF with PyMuPDF
-            with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
-                extracted_text = ""
-                for page in doc:
-                    extracted_text += page.get_text()
-            
-            return Response({"text": extracted_text}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

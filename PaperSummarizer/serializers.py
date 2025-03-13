@@ -17,4 +17,4 @@ class PaperSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paper
-        fields = ['id', 'title', 'labels', 'summary']
+        fields = ['id', 'title', 'labels', 'summary', 'file']
