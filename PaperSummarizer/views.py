@@ -1,6 +1,6 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, views
 from rest_framework.parsers import MultiPartParser
 from django.http import HttpResponse
 from django.db.models import Q, Value
@@ -19,7 +19,34 @@ class SummaryViewSet(viewsets.ModelViewSet):
 class PaperViewSet(viewsets.ModelViewSet):
     queryset = Paper.objects.all()
     serializer_class = PaperSerializer
+    parser_classes = (MultiPartParser, )
 
+    def create(self, request):
+        if 'file' not in request.FILES:
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the uploaded file from request.FILES
+        pdf_file = request.FILES['file']
+
+        if not pdf_file.name.endswith('.pdf'):
+            return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        pdf_bytes = pdf_file.read()
+        
+        # create a paper object
+        Paper.objects.create(title=pdf_file.name, file=pdf_file)
+        
+        try:
+            # Process the PDF with PyMuPDF
+            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+                extracted_text = ""
+                for page in doc:
+                    extracted_text += page.get_text()
+            
+            return Response({"text": extracted_text}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
     # function to retrieve papers by label name
     @action(detail=False, methods=['get'], url_path='retrieve-by-label-name/(?P<label_name>[^/.]+)')
     def retrieve_papers_by_label_name(self, request, label_name=None):
@@ -102,7 +129,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             )
 
     #add a label to a paper
-    @action(detail=True, methods=['post'], url_path='add-label')
+    @action(detail=True, methods=['put'], url_path='add-label')
     def add_label(self, request, pk=None):
         paper = self.get_object()
         label_id = request.data.get('label_id')
@@ -120,7 +147,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             return Response({"error": "Label not found"}, status=404)
 
     #remove a label from a paper
-    @action(detail=True, methods=['post'], url_path='remove-label')
+    @action(detail=True, methods=['put'], url_path='remove-label')
     def remove_label(self, request, pk=None):
         paper = self.get_object()
         label_id = request.data.get('label_id')
@@ -141,19 +168,3 @@ class PaperViewSet(viewsets.ModelViewSet):
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
-
-class FileUploadView(views.APIView):
-    parser_classes = (MultiPartParser, )
-
-    def put(self, request, format='pdf'):
-        file_obj = request.FILES.get('file')
-        if not file_obj or not file_obj.name.endswith('.pdf'):
-            return Response({"error": "Invalid file"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            with fitz.open(stream=file_obj, filetype="pdf") as doc:
-                extracted_text = "".join([page.get_text() for page in doc])
-                return Response({"text": extracted_text}, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
