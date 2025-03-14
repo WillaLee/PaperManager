@@ -1,11 +1,9 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import viewsets, status, views
+from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser
 from django.http import HttpResponse
-from django.db.models import Q, Value
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db import transaction
 import fitz
 
 
@@ -68,17 +66,18 @@ class PaperViewSet(viewsets.ModelViewSet):
     def get_summary(self, request, pk=None):
         summary = Summary.objects.filter(paper_id=pk).first()
         if summary:
-            return Response({"summary": summary.text})
+            return Response({"summary": summary.content})
         return Response({"message": "Summary not found"}, status=404)   
     
     # function for getting summary in LaTeX format
     @action(detail=True, methods=['get'], url_path='get-summary-latex')
     def get_summary_latex(self, request, pk=None):
         paper = self.get_object()
-        summary = getattr(paper, 'summary', None)
-
-        if summary and summary.latex_format:
-            response = HttpResponse(summary.latex_format, content_type='application/x-tex')
+        summary = Summary.objects.filter(paper_id=pk).first()
+        
+        if summary:
+            latex_content = summary.get_or_update_latex_format() # This ensures that if latex_format doesn't exist, it will be generated
+            response = HttpResponse(latex_content, content_type='application/x-tex')
             response['Content-Disposition'] = f'attachment; filename="summary_{paper.id}.tex"'
             return response
         

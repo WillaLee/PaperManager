@@ -7,6 +7,26 @@ class Summary(models.Model):
 
     def __str__(self):
         return f"Summary {self.id}"
+    
+    def transform_to_latex(self):
+        """
+        Convert plain text to a basic LaTeX formatted document.
+        """
+        latex_content = "\\documentclass{article}\n\\begin{document}\n"
+        latex_content += self.content
+        latex_content += "\n\\end{document}"
+        return latex_content
+
+    def get_or_update_latex_format(self):
+        """
+        Return the LaTeX formatted summary. If it doesn't exist, generate it,
+        update the instance, and then return the formatted text.
+        """
+        if self.latex_format:
+            return self.latex_format
+        self.latex_format = self.transform_to_latex()
+        self.save(update_fields=['latex_format'])
+        return self.latex_format
 
 class Label(models.Model):
     name = models.CharField(max_length=255, unique=True)
