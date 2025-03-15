@@ -26,7 +26,8 @@ import {
   addLabel,
   removeLabel,
   getAllLabels,
-  createLabel
+  createLabel,
+  getPaperLabels
 } from '../services/api';
 
 const PaperDetails = () => {
@@ -77,6 +78,15 @@ const PaperDetails = () => {
         } catch (err) {
           console.error('Error fetching all labels:', err);
         }
+
+        // Fetch labels attached to the paper
+        try {
+          const labelsOfPaper = await getPaperLabels(paperId);
+          setPaperLabels(labelsOfPaper.labels);
+        } catch (err) {
+          console.error('Error fetching labels of the paper:', err);
+        }
+
       } catch (err) {
         console.error('Error fetching paper details:', err);
         setError('Failed to load paper details. Please try again later.');
@@ -107,9 +117,8 @@ const PaperDetails = () => {
 
   const handleAddLabel = async () => {
     if (!selectedLabel) return;
-    
     try {
-      await addLabel(paperId, selectedLabel.id);
+      await addLabel(paperId, selectedLabel.name);
       // Update paper labels
       setPaperLabels([...paperLabels, selectedLabel]);
       setSelectedLabel(null);
@@ -119,11 +128,11 @@ const PaperDetails = () => {
     }
   };
 
-  const handleRemoveLabel = async (labelId) => {
+  const handleRemoveLabel = async (label_name) => {
     try {
-      await removeLabel(paperId, labelId);
+      await removeLabel(paperId, label_name);
       // Update paper labels
-      setPaperLabels(paperLabels.filter(label => label.id !== labelId));
+      setPaperLabels(paperLabels.filter(label => label.name !== label_name));
     } catch (err) {
       console.error('Error removing label:', err);
       setError('Failed to remove label. Please try again.');
@@ -190,9 +199,8 @@ const PaperDetails = () => {
             {paperLabels.length > 0 ? (
               paperLabels.map((label) => (
                 <Chip 
-                  key={label.id} 
                   label={label.name} 
-                  onDelete={() => handleRemoveLabel(label.id)} 
+                  onDelete={() => handleRemoveLabel(label.name)} 
                   color="primary" 
                   variant="outlined"
                 />
