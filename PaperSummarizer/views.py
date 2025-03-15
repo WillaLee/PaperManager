@@ -106,6 +106,15 @@ class PaperViewSet(viewsets.ModelViewSet):
         
         return Response({"message": "No summary available. Please try again."}, status=404)
 
+    # function for retrieving the labels of a paper
+    @action(detail=True, methods=['get'], url_path='get-labels')
+    def get_labels(self, request, pk=None):
+        paper = self.get_object()
+        labels = paper.labels
+        if labels:
+            serialized_labels = LabelSerializer(labels, many=True).data
+            return Response({"labels": serialized_labels})
+        return Response({"message": "No summary avaliable! Please try again."}, status=404)   
     
     # function to search for existing labels related to this paper)
     @action(detail=True, methods=['get'], url_path='related-labels')
@@ -129,20 +138,13 @@ class PaperViewSet(viewsets.ModelViewSet):
             paper = self.get_object()
             
             # Get raw keywords string from the paper
-            raw_keywords = paper.key_words
+            keywords = paper.key_words
             
             # Process keywords into a clean list
-            if not raw_keywords:  # Handles None or empty string
+            if not keywords:  # Handles None or empty string
                 return Response([], status=status.HTTP_200_OK)
-                
-            # Split, clean, and filter keywords
-            processed_keywords = [
-                kw.strip() 
-                for kw in raw_keywords.split(',') 
-                if kw.strip()  # Remove empty strings
-            ]
             
-            return Response(processed_keywords, status=status.HTTP_200_OK)
+            return Response(keywords, status=status.HTTP_200_OK)
         
         except Paper.DoesNotExist:
             return Response(
@@ -154,14 +156,14 @@ class PaperViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['put'], url_path='add-label')
     def add_label(self, request, pk=None):
         paper = self.get_object()
-        label_id = request.data.get('label_id')
+        label_name = request.data.get('name')
         
-        if not label_id:
-            return Response({"error": "label_id required"}, status=400)
+        if not label_name:
+            return Response({"error": "label_name required"}, status=400)
             
         try:
-            label = Label.objects.get(id=label_id)
-            if not paper.labels.filter(id=label_id).exists():
+            label = Label.objects.get(name=label_name)
+            if not paper.labels.filter(name=label_name).exists():
                 paper.labels.add(label)
                 return Response(PaperSerializer(paper).data, status=200)
             return Response({"message": "Label already added"}, status=400)
@@ -172,14 +174,14 @@ class PaperViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['put'], url_path='remove-label')
     def remove_label(self, request, pk=None):
         paper = self.get_object()
-        label_id = request.data.get('label_id')
+        label_name = request.data.get('name')
 
-        if not label_id:
-            return Response({"error": "label_id required"}, status=400)
+        if not label_name:
+            return Response({"error": "label_name required"}, status=400)
 
         try:
-            label = Label.objects.get(id=label_id)
-            if paper.labels.filter(id=label_id).exists():
+            label = Label.objects.get(name=label_name)
+            if paper.labels.filter(name=label_name).exists():
                 paper.labels.remove(label)
                 return Response(PaperSerializer(paper).data, status=200)
             return Response({"message": "Label not found on this paper"}, status=400)

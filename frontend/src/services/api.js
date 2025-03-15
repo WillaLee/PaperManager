@@ -44,7 +44,7 @@ export const getPaperSummaryLatex = async (paperId) => {
 };
 
 export const searchLabels = async (paperId) => {
-  const response = await api.post(`/papers/${paperId}/search-labels/`);
+  const response = await api.get(`/papers/${paperId}/related-labels/`);
   return response.data;
 };
 
@@ -53,19 +53,24 @@ export const getKeywords = async (paperId) => {
   return response.data;
 };
 
-export const addLabel = async (paperId, labelId) => {
+export const addLabel = async (paperId, name) => {
   const response = await api.put(`/papers/${paperId}/add-label/`, {
-    label_id: labelId
+    name: name
   });
   return response.data;
 };
 
-export const removeLabel = async (paperId, labelId) => {
+export const removeLabel = async (paperId, name) => {
   const response = await api.put(`/papers/${paperId}/remove-label/`, {
-    label_id: labelId
+    name: name
   });
   return response.data;
 };
+
+export const getPaperLabels = async (paperId) => {
+  const response = await api.get(`/papers/${paperId}/get-labels/`);
+  return response.data
+}
 
 export const getAllLabels = async () => {
   const response = await api.get('/labels/');
@@ -73,7 +78,7 @@ export const getAllLabels = async () => {
 };
 
 export const createLabel = async (name) => {
-  const response = await api.put('/labels/', { name });
+  const response = await api.post('/labels/', { name });
   return response.data;
 };
 
