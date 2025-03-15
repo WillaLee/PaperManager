@@ -1,7 +1,7 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets, status
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from django.http import HttpResponse
 from django.contrib.postgres.search import TrigramSimilarity
 import fitz
@@ -17,7 +17,7 @@ class SummaryViewSet(viewsets.ModelViewSet):
 class PaperViewSet(viewsets.ModelViewSet):
     queryset = Paper.objects.all()
     serializer_class = PaperSerializer
-    parser_classes = (MultiPartParser, )
+    parser_classes = (MultiPartParser, JSONParser,)
 
     def create(self, request):
         if 'file' not in request.FILES:
@@ -32,7 +32,7 @@ class PaperViewSet(viewsets.ModelViewSet):
         pdf_bytes = pdf_file.read()
         
         # create a paper object
-        Paper.objects.create(title=pdf_file.name, file=pdf_file)
+        paper = Paper.objects.create(title=pdf_file.name, file=pdf_file)
         
         try:
             # Process the PDF with PyMuPDF
@@ -41,9 +41,31 @@ class PaperViewSet(viewsets.ModelViewSet):
                 for page in doc:
                     extracted_text += page.get_text()
             
-            return Response({"text": extracted_text}, status=status.HTTP_200_OK)
+            return Response({"text": extracted_text, "paper_id": paper.id}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    # function to update the paper
+    def update(self, request, pk=None):
+        paper = self.get_object()
+        # update summary
+        if "summary" in request.data:
+            summary_data = request.data.get("summary")
+            paper.update_summary(summary_data)
+        
+        # update key words
+        if "key_words" in request.data:
+            key_words = request.data.get("key_words")
+            paper.key_words = key_words
+            paper.save()
+        
+        # update title
+        if "title" in request.data:
+            title = request.data.get("title")
+            paper.title = title
+            paper.save()
+
+        return Response({"id": paper.id}, status=201)    
         
     # function to retrieve papers by label name
     @action(detail=False, methods=['get'], url_path='retrieve-by-label-name/(?P<label_name>[^/.]+)')
@@ -60,25 +82,6 @@ class PaperViewSet(viewsets.ModelViewSet):
         serializer = PaperSerializer(papers, many=True)
 
         return Response(serializer.data)
-    
-    # function to add the summary of a paper as a string
-    @action(detail=True, methods=['put'], url_path='add-summary')
-    def add_summary(self, request, pk=None):
-        if "summary" not in request.data:
-            return Response({"error": "No summary provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        paper = self.get_object()
-        summary_data = request.data.get("summary")
-
-        if paper.summary:
-            paper.summary.content = summary_data
-            paper.summary.save()
-        else:
-            new_summary = Summary.objects.create(content=summary_data)
-            paper.summary = new_summary
-            paper.save()
-
-        return Response({"message": "Successfully add summary."}, status=201)   
 
     # function for retrieving the summary of a paper as a string
     @action(detail=True, methods=['get'], url_path='get-summary')

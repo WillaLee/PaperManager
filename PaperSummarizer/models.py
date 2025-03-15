@@ -43,3 +43,11 @@ class Paper(models.Model):
 
     def __str__(self):
         return self.title
+    
+    # function to update summary
+    def update_summary(self, summary):
+        if self.summary:
+            self.summary.content = summary
+        else:
+            new_summary = Summary.objects.create(content=summary)
+            self.summary = new_summary
