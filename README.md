@@ -58,10 +58,10 @@ python manage.py runserver
 
 1. Before pushing your contribute, checkout to main and pull the latest changes and merge with your own branch
 ```
-checkout main
+git checkout main
 git pull
-checkout <your_branch_name>
-git merge
+git checkout <your_branch_name>
+git merge main
 ```
 
 2. To push your contribute
