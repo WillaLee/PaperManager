@@ -53,12 +53,14 @@ const PaperUpload = () => {
     
     try {
       // First upload the PDF to extract text
-      const textData = await uploadPaper(file);
+      const uploadResponse = await uploadPaper(file);
+      const { text, paper_id } = uploadResponse;
       
       // TODO: 
       // 1. generate summary and keywords with onnx runtime
       // 2. send a put request to add summary and keywords to a paper
-      const response = await createPaper(title, textData);
+      const hard_coded_key_words = ["machine learning", "Transformer", "Google"]
+      const response = await createPaper(paper_id, title, text, hard_coded_key_words);
       
       setSuccess('Paper uploaded successfully!');
       
