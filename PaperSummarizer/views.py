@@ -60,20 +60,40 @@ class PaperViewSet(viewsets.ModelViewSet):
         serializer = PaperSerializer(papers, many=True)
 
         return Response(serializer.data)
+    
+    # function to add the summary of a paper as a string
+    @action(detail=True, methods=['put'], url_path='add-summary')
+    def add_summary(self, request, pk=None):
+        if "summary" not in request.data:
+            return Response({"error": "No summary provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        paper = self.get_object()
+        summary_data = request.data.get("summary")
+
+        if paper.summary:
+            paper.summary.content = summary_data
+            paper.summary.save()
+        else:
+            new_summary = Summary.objects.create(content=summary_data)
+            paper.summary = new_summary
+            paper.save()
+
+        return Response({"message": "Successfully add summary."}, status=201)   
 
     # function for retrieving the summary of a paper as a string
     @action(detail=True, methods=['get'], url_path='get-summary')
     def get_summary(self, request, pk=None):
-        summary = Summary.objects.filter(paper_id=pk).first()
+        paper = self.get_object()
+        summary = paper.summary
         if summary:
             return Response({"summary": summary.content})
-        return Response({"message": "Summary not found"}, status=404)   
+        return Response({"message": "No summary avaliable! Please try again."}, status=404)   
     
     # function for getting summary in LaTeX format
     @action(detail=True, methods=['get'], url_path='get-summary-latex')
     def get_summary_latex(self, request, pk=None):
         paper = self.get_object()
-        summary = Summary.objects.filter(paper_id=pk).first()
+        summary = paper.summary
         
         if summary:
             latex_content = summary.get_or_update_latex_format() # This ensures that if latex_format doesn't exist, it will be generated
