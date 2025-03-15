@@ -38,7 +38,7 @@ class Paper(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True)
     key_words = models.JSONField(default=list, null=True, blank=True)
     file = models.FileField(upload_to='papers/', null=True, blank=True)
-    labels = models.ManyToManyField(Label, related_name='papers', null=True, blank=True)  # Many-to-many relationship with Label
+    labels = models.ManyToManyField(Label, related_name='papers', blank=True)  # Many-to-many relationship with Label
     summary = models.OneToOneField(Summary, on_delete=models.CASCADE, null=True, blank=True)  # One-to-one relationship with Summary
 
     def __str__(self):
