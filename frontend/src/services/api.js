@@ -16,11 +16,12 @@ export const uploadPaper = async (file) => {
   return uploadResponse.data;
 };
 
-// TODO: this function sends a put request to create paper with this fields: summary, keywords and title
-export const createPaper = async (title, textData) => {
-  return await api.post('/papers/', {
+// this function sends a put request to create paper with this fields: summary, keywords and title
+export const createPaper = async (paperId, title, summary, key_words) => {
+  return await api.put(`/papers/${paperId}/`, {
     title,
-    ...textData
+    summary,
+    key_words
   });
 };
 
