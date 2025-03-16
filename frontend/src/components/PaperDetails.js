@@ -27,7 +27,8 @@ import {
   removeLabel,
   getAllLabels,
   createLabel,
-  getPaperLabels
+  getPaperLabels,
+  getSummarySpeech
 } from '../services/api';
 
 const PaperDetails = () => {
@@ -42,6 +43,8 @@ const PaperDetails = () => {
   const [newLabelName, setNewLabelName] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [paperLabels, setPaperLabels] = useState([]);
+  const [audioUrl, setAudioUrl] = useState(null); // State for the audio URL
+  const [audioLoading, setAudioLoading] = useState(false);
 
   useEffect(() => {
     const fetchPaperDetails = async () => {
@@ -154,6 +157,20 @@ const PaperDetails = () => {
     }
   };
 
+  // Function to handle fetching the audio
+  const handleGetAudio = async () => {
+    setAudioLoading(true);
+    try {
+      const audioData = await getSummarySpeech(paperId); // Replace with your actual function
+      setAudioUrl(audioData.audioUrl);  // Assuming the audio URL is in the response
+    } catch (err) {
+      console.error('Error fetching audio:', err);
+      setError('Failed to fetch audio. Please try again later.');
+    } finally {
+      setAudioLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -184,6 +201,32 @@ const PaperDetails = () => {
           </Button>
         </Box>
       </Paper>
+      
+      <Paper sx={{ p: 3, mt: 3 }}>
+        <Typography variant="h5" gutterBottom>
+          Get Audio
+        </Typography>
+        <Box sx={{ mt: 2 }}>
+          <Button 
+            variant="contained" 
+            color="secondary" 
+            onClick={handleGetAudio}
+            disabled={audioLoading}
+          >
+            {audioLoading ? 'Loading Audio...' : 'Get Audio'}
+          </Button>
+        </Box>
+
+        {audioUrl && (
+          <Box sx={{ mt: 2 }}>
+            <audio controls>
+              <source src={audioUrl} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+          </Box>
+        )}
+      </Paper>
+
       
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
