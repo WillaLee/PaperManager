@@ -3,7 +3,6 @@
 A comprehensive tool for managing academic papers, featuring AI-driven summarization, categorization assistance, citation management, text-to-speech (TTS), and multi-format exports. The system runs locally using ONNX Runtime for optimized performance while ensuring data privacy.
 
 # Features
-
 ## Core Functionalities
 
 - **Upload & Extract**: Supports PDF uploads, extracting text and metadata.
@@ -11,30 +10,35 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
 - **AI-Powered Summarization(RAG-Enhanced)**: 
   - **Technology**: Uses Llama 3.2 via AnythingLLM for on-device processing.  
   - **Accuracy**: Retrieval-Augmented Generation (RAG) ensures context-aware summaries with minimal hallucinations.  
-  - **Customization**: Adjust summary length or focus areas (methodology, results, etc.).
 
 - **Categorization Assistance**:  
   - Automatically suggests relevant labels based on content.  
   - Allows manual tagging and custom categorization.
 
 - **Write Citation**:  
-  - Extracts metadata (DOI, authors, journal, etc.).  
-  - Generates and exports references in BibTeX format for LaTeX compatibility.  
-  - Provides an interactive UI to edit and validate citations.
+  - Automatically generate IEEE citation for CS journals
 
 - **Text-to-Speech (TTS)**: Converts summaries into natural-sounding speech for accessibility and multitasking.
 
 ## Export Options
-
 - **LaTeX & BibTeX Export**: Convert summaries and citations to LaTeX/BibTeX format.
 - **Multi-Format Export**: Save results as Markdown, plain text, or JSON for integration with other tools.
+
+## Currently Working on
+- Citation: Checks H-index to assess the credibility of sources and determine if they are worth citing.
 
 # Demo
 ## Watch a quick demo of Paper Manager in action:
 
+https://www.loom.com/share/669ee0d810f1418d97a9883d01a596d6?sid=dfee9961-a498-45c7-ac46-93aad69d5933
 
 # Authors
 team: 360HackAI
+- Jenny Huang: https://www.linkedin.com/in/jenny-chenyi-huang/
+- Caronila Li: https://www.linkedin.com/in/carolina-li/
+- Kaya Rao: https://www.linkedin.com/in/kaya-rao/
+- Livia Li: https://www.linkedin.com/in/livia-li/
+- Yijia Zhan: https://www.linkedin.com/in/yijia-zhan/
 
 # Backend Installation
 
@@ -111,20 +115,15 @@ npm start
 ```
 
 # Model Deployment
-1. Set up AnythingLLM
-2. Start the AnythingLLM server
-```
-anythingllm start
-```
-3. Verify API Connection
-   - Ensure the API URL matches the MODEL_API_URL in .env.
-   - If running on a remote server, update the .env file with the correct endpoint.
+1. Set up AnythingLLM refers to https://github.com/thatrandomfrenchdude/simple-npu-chatbot/blob/main/README.md
+# Text-to-Speech (TTS) Deployment 
+1. Set up TTS refers to https://github.com/thewh1teagle/kokoro-onnx/blob/main/README.md
 
 # Usage (Prompts) 
 - Upload research paper (PDF)
-- Set summary length/focus area (optional)
 - Generate AI-powered summary
 - Edit tags/categories (optional)
+- Generate citation
 - Export results or convert to speech
 
 ## License
