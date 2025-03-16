@@ -3,7 +3,6 @@
 A comprehensive tool for managing academic papers, featuring AI-driven summarization, categorization assistance, citation management, text-to-speech (TTS), and multi-format exports. The system runs locally using ONNX Runtime for optimized performance while ensuring data privacy.
 
 # Features
-
 ## Core Functionalities
 
 - **Upload & Extract**: Supports PDF uploads, extracting text and metadata.
@@ -31,9 +30,13 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
 # Demo
 ## Watch a quick demo of Paper Manager in action:
 
-
 # Authors
 team: 360HackAI
+Jenny Huang: https://www.linkedin.com/in/jenny-chenyi-huang/
+Caronila Li: https://www.linkedin.com/in/carolina-li/
+Kaya Rao: https://www.linkedin.com/in/kaya-rao/
+Livia Li: https://www.linkedin.com/in/livia-li/
+Yijia Zhan: https://www.linkedin.com/in/yijia-zhan/
 
 # Backend Installation
 
