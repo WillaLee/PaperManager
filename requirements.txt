@@ -7,3 +7,4 @@ django-cors-headers==4.7.0
 rapidfuzz==3.6.1
 kokoro-onnx==0.4.5
 soundfile==0.13.1
+prettyprinter==0.18.0
