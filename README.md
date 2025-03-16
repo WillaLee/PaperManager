@@ -30,6 +30,8 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
 # Demo
 ## Watch a quick demo of Paper Manager in action:
 
+https://www.loom.com/share/669ee0d810f1418d97a9883d01a596d6?sid=dfee9961-a498-45c7-ac46-93aad69d5933
+
 # Authors
 team: 360HackAI
 - Jenny Huang: https://www.linkedin.com/in/jenny-chenyi-huang/
