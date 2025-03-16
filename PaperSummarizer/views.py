@@ -2,11 +2,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser, JSONParser
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.contrib.postgres.search import TrigramSimilarity
+from django.conf import settings
 import fitz
 from rapidfuzz import process, fuzz
-
+import os
+import soundfile as sf
+from kokoro_onnx import Kokoro
 
 from .models import Paper, Summary, Label
 from .serializers import PaperSerializer, SummarySerializer, LabelSerializer
@@ -200,7 +203,35 @@ class PaperViewSet(viewsets.ModelViewSet):
             return Response({"message": "Label not found on this paper"}, status=400)
         except Label.DoesNotExist:
             return Response({"error": "Label not found"}, status=404)
+    
+    # convert summary into speech
+    @action(detail=True, methods=['get'], url_path='summary-to-speech')
+    def summary_to_speech(self, request, pk=None):
+        paper = self.get_object()
+        if not paper.summary:
+            return Response({"error": "No summary provided! Please try again"}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            model_path = os.path.join(settings.BASE_DIR, "kokoro-v1.0.onnx")
+            voices_path = os.path.join(settings.BASE_DIR, "voices-v1.0.bin")
+
+            kokoro = Kokoro(model_path, voices_path)
+            samples, sample_rate = kokoro.create(
+                paper.summary.content, voice="af_sarah", speed=1.0, lang="en-us"
+            )
+            output_file = "audio.wav"
+            sf.write(output_file, samples, sample_rate)
+
+            # Return the audio file as a response
+            response = FileResponse(open(output_file, 'rb'), content_type='audio/wav')
+            response['Content-Disposition'] = f'attachment; filename="{output_file}"'
+
+            # Optionally, delete the file after sending
+            os.remove(output_file)
+
+            return response
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()

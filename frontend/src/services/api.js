@@ -82,4 +82,9 @@ export const createLabel = async (name) => {
   return response.data;
 };
 
+export const getSummarySpeech = async (paperId) => {
+  const response = await api.get(`/papers/${paperId}/summary-to-speech/`, { responseType: 'blob' });
+  return response.data
+}
+
 export default api;
