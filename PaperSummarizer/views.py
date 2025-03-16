@@ -6,6 +6,7 @@ from django.http import HttpResponse, FileResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django.conf import settings
 import fitz
+from rapidfuzz import process, fuzz
 import os
 import soundfile as sf
 from kokoro_onnx import Kokoro
@@ -119,20 +120,32 @@ class PaperViewSet(viewsets.ModelViewSet):
             serialized_labels = LabelSerializer(labels, many=True).data
             return Response({"labels": serialized_labels})
         return Response({"message": "No summary avaliable! Please try again."}, status=404)   
-    
+
     # function to search for existing labels related to this paper)
     @action(detail=True, methods=['get'], url_path='related-labels')
     def fuzzy_search_labels(self, request, pk=None):
         paper = self.get_object()
-        if not paper.key_words:
-            return Response({"error": "No keywords available"}, status=404)
+        key_words = paper.key_words
+        
+        if not key_words:
+            return Response({"error": "No keywords available"}, status=status.HTTP_404_NOT_FOUND)
 
-        search_terms = [t.strip() for t in paper.key_words.split(',') if t.strip()]
-        threshold = float(request.query_params.get("threshold", 0.2))  # Default 0.2
-        labels = Label.objects.annotate(
-            similarity=TrigramSimilarity('name', Value(' '.join(search_terms)))
-        ).filter(similarity__gt=threshold).order_by('-similarity')[:10]
+        all_labels = list(Label.objects.values_list('name', flat=True))
+        
+        threshold = int(request.query_params.get("threshold", 70))
+        
+        matched_labels = set()
+        for keyword in key_words:
+            results = process.extract(
+                keyword, 
+                all_labels,
+                scorer=fuzz.partial_ratio,
+                score_cutoff=threshold
+            )
+            matched_labels.update([result[0] for result in results])
 
+        labels = Label.objects.filter(name__in=matched_labels)
+        
         return Response(LabelSerializer(labels, many=True).data)
     
     # Implement function to get keywords of this paper

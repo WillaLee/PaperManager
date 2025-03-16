@@ -6,3 +6,4 @@ PyMuPDF==1.25.3
 django-cors-headers==4.7.0
 kokoro-onnx==0.4.5
 soundfile==0.13.1
+RapidFuzz==2.5.0
