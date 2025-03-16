@@ -162,8 +162,8 @@ const PaperDetails = () => {
   const handleGetAudio = async () => {
     setAudioLoading(true);
     try {
-      const audioData = await getSummarySpeech(paperId); // Replace with your actual function
-      setAudioUrl(audioData.audioUrl);  // Assuming the audio URL is in the response
+      const url = await getSummarySpeech(paperId);
+      setAudioUrl(url);
     } catch (err) {
       console.error('Error fetching audio:', err);
       setError('Failed to fetch audio. Please try again later.');
@@ -221,7 +221,7 @@ const PaperDetails = () => {
         {audioUrl && (
           <Box sx={{ mt: 2 }}>
             <audio controls>
-              <source src={audioUrl} type="audio/mpeg" />
+              <source src={audioUrl} type="audio/wav" />
               Your browser does not support the audio element.
             </audio>
           </Box>

@@ -226,9 +226,6 @@ class PaperViewSet(viewsets.ModelViewSet):
             response = FileResponse(open(output_file, 'rb'), content_type='audio/wav')
             response['Content-Disposition'] = f'attachment; filename="{output_file}"'
 
-            # Optionally, delete the file after sending
-            os.remove(output_file)
-
             return response
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
