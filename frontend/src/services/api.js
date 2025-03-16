@@ -82,7 +82,9 @@ export const createLabel = async (name) => {
 
 export const getSummarySpeech = async (paperId) => {
   const response = await api.get(`/papers/${paperId}/summary-to-speech/`, { responseType: 'blob' });
-  return response.data
+  const blob = new Blob([response.data], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  return url;
 }
 
 export default api;

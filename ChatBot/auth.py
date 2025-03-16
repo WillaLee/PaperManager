@@ -1,5 +1,9 @@
 import requests
-import yaml
+from django.conf import settings
+
+MODEL_API_KEY="PGMPYXN-SYC4GB6-K1V3HNK-033FNHN" # AnythingLLM API Key
+MODEL_SERVER_BASE_URL="http://localhost:3001/api/v1" # AnythingLLM API endpoint
+WORKSPACE_SLUG="papersummarizer" # AnythingLLM API workspace
 
 def auth(
     api_key: str,
@@ -31,13 +35,13 @@ def auth(
     print(auth_response.json())
 
 if __name__ == "__main__":
-    # load config from yaml
-    with open("config.yaml", "r") as file:
-        config = yaml.safe_load(file)
 
     # get the api_key and base_url from the config file
-    api_key = config["api_key"]
-    base_url = config["model_server_base_url"]
+    # self.api_key = settings.MODEL_API_KEY
+    # self.base_url = settings.MODEL_SERVER_BASE_URL
+    api_key = MODEL_API_KEY
+    base_url = MODEL_SERVER_BASE_URL
+
 
     # call the auth function
     auth(api_key, base_url)
