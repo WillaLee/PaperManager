@@ -11,7 +11,6 @@ import os
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-
 from .models import Paper, Summary, Label
 from .serializers import PaperSerializer, SummarySerializer, LabelSerializer
 
@@ -233,7 +232,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             return response
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
