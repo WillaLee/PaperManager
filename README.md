@@ -21,12 +21,12 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
 
 - **Text-to-Speech (TTS)**: Converts summaries into natural-sounding speech for accessibility and multitasking.
 
-## Currently Working on
-- Citation: Checks H-index to assess the credibility of sources and determine if they are worth citing.
-
 ## Export Options
 - **LaTeX & BibTeX Export**: Convert summaries and citations to LaTeX/BibTeX format.
 - **Multi-Format Export**: Save results as Markdown, plain text, or JSON for integration with other tools.
+
+## Currently Working on
+- Citation: Checks H-index to assess the credibility of sources and determine if they are worth citing.
 
 # Demo
 ## Watch a quick demo of Paper Manager in action:
