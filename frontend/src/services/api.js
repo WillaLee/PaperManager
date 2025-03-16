@@ -17,11 +17,9 @@ export const uploadPaper = async (file) => {
 };
 
 // this function sends a put request to create paper with this fields: summary, keywords and title
-export const createPaper = async (paperId, title, summary, key_words) => {
+export const updateTitle = async (paperId, title) => {
   return await api.put(`/papers/${paperId}/`, {
     title,
-    summary,
-    key_words
   });
 };
 

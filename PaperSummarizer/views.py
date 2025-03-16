@@ -34,35 +34,25 @@ class PaperViewSet(viewsets.ModelViewSet):
         if not pdf_file.name.endswith('.pdf'):
             return Response({"error": "Uploaded file is not a PDF"}, status=status.HTTP_400_BAD_REQUEST)
         
-        pdf_bytes = pdf_file.read()
-        
-        # create a paper object
-        paper = Paper.objects.create(title=pdf_file.name, file=pdf_file)
-        
         try:
-            # Process the PDF with PyMuPDF
-            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
-                extracted_text = ""
-                for page in doc:
-                    extracted_text += page.get_text()
+            # TODO: generate summary and keywords by model
+            # hard coded summary
+            summary_content = "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data."
+            # hard coded keywords
+            key_words = ["machine learning", "Transformer", "Google"]
             
-            return Response({"text": extracted_text, "paper_id": paper.id}, status=status.HTTP_200_OK)
+            # create a paper object
+            paper = Paper.objects.create(title=pdf_file.name, file=pdf_file, key_words=key_words)
+            paper.update_summary(summary_content)
+            paper.save()
+            
+            return Response({"paper_id": paper.id}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # function to update the paper
     def update(self, request, pk=None):
         paper = self.get_object()
-        # update summary
-        if "summary" in request.data:
-            summary_data = request.data.get("summary")
-            paper.update_summary(summary_data)
-        
-        # update key words
-        if "key_words" in request.data:
-            key_words = request.data.get("key_words")
-            paper.key_words = key_words
-            paper.save()
         
         # update title
         if "title" in request.data:
