@@ -17,12 +17,13 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
   - Allows manual tagging and custom categorization.
 
 - **Write Citation**:  
-  - Extracts metadata (DOI, authors, journal, etc.).  
-  - Generates and exports references in BibTeX format for LaTeX compatibility.  
-  - Provides an interactive UI to edit and validate citations.
+  - Automatically generate IEEE citation for CS journals
   - Checks H-index to assess the credibility of sources and determine if they are worth citing.
 
 - **Text-to-Speech (TTS)**: Converts summaries into natural-sounding speech for accessibility and multitasking.
+
+## Currently Working on
+- Citation: Checks H-index to assess the credibility of sources and determine if they are worth citing.
 
 ## Export Options
 
@@ -111,14 +112,9 @@ npm start
 ```
 
 # Model Deployment
-1. Set up AnythingLLM
-2. Start the AnythingLLM server
-```
-anythingllm start
-```
-3. Verify API Connection
-   - Ensure the API URL matches the MODEL_API_URL in .env.
-   - If running on a remote server, update the .env file with the correct endpoint.
+1. Set up AnythingLLM refers to https://github.com/thatrandomfrenchdude/simple-npu-chatbot/blob/main/README.md
+# Text-to-Speech (TTS) Deployment 
+1. Set up TTS refers to https://github.com/thewh1teagle/kokoro-onnx/blob/main/README.md
 
 # Usage (Prompts) 
 - Upload research paper (PDF)
