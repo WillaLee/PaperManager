@@ -7,6 +7,10 @@ import logging
 import os
 from django.conf import settings
 
+MODEL_API_KEY="PGMPYXN-SYC4GB6-K1V3HNK-033FNHN" # AnythingLLM API Key
+MODEL_SERVER_BASE_URL="http://localhost:3001/api/v1" # AnythingLLM API endpoint
+WORKSPACE_SLUG="papersummarizer" # AnythingLLM API workspace
+
 def loading_indicator() -> None:
     """
     Display a loading indicator in the console while the chat request is being processed
@@ -22,9 +26,14 @@ def loading_indicator() -> None:
 
 class Chatbot:
     def __init__(self):
+        '''
         self.api_key = settings.MODEL_API_KEY
         self.base_url = settings.MODEL_SERVER_BASE_URL
         self.workspace_slug = settings.WORKSPACE_SLUG
+        '''
+        self.api_key = MODEL_API_KEY
+        self.base_url = MODEL_SERVER_BASE_URL
+        self.workspace_slug = WORKSPACE_SLUG
 
         self.chat_url = f"{self.base_url}/workspace/{self.workspace_slug}/chat"
         self.upload_url = f"{self.base_url}/document/upload"
@@ -76,7 +85,7 @@ class Chatbot:
 
         data = {
             "message": message,
-            "mode": "query",
+            "mode": "chat", # change to query if possible
             "sessionId": "example-session-id",
             "attachments": [],
             "history": short_term_memory
@@ -201,19 +210,21 @@ class Chatbot:
         self.move_file_to_workspace(document_location)
 
     
-
+# For debug
 if __name__ == '__main__':
-    # stop_loading = False
+    stop_loading = False
     chatbot = Chatbot()
     # chatbot.run()
     # file_path = "/Users/joshua/Desktop/simple-npu-chatbot-main/test_input/Attension is all you need.json"
     # file_path = "/Users/joshua/Desktop/simple-npu-chatbot-main/test_input/attention is all you need.pdf"
-    file_path = "/Users/joshua/Desktop/simple-npu-chatbot-main/test_input/attention is all you need.pdf"
+    # file_path = r"C:\Users\qc_de\PaperManager\media\papers\Attention Is All You Need.pdf"
     # document_location = chatbot.upload_research_paper(file_path)
     # chatbot.move_file_to_workspace(document_location)
     # chatbot.get_summary("Attention is all you need")
     # chatbot.get_keywords("Attention is all you need")
-    with open(file_path, 'rb') as file:
-        chatbot.add_paper_to_rag(file)
-
+    # with open(file_path, 'rb') as file:
+    #    chatbot.add_paper_to_rag(file)
+    
+    chatbot.get_summary("Attention is all you need")
+    stop_loading = True
     

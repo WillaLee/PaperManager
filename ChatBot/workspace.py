@@ -1,6 +1,8 @@
 import requests
-import yaml
+# import yaml
 from prettyprinter import pprint
+MODEL_API_KEY="PGMPYXN-SYC4GB6-K1V3HNK-033FNHN" # AnythingLLM API Key
+MODEL_SERVER_BASE_URL="http://localhost:3001/api/v1" # AnythingLLM API endpoint
 
 def workspaces(
     api_key: str,
@@ -35,13 +37,10 @@ def workspaces(
     pprint(workspaces_response.json())
 
 if __name__ == "__main__":
-    # load config from yaml
-    with open("config.yaml", "r") as file:
-        config = yaml.safe_load(file)
 
     # get the api_key and base_url from the config file
-    api_key = config["api_key"]
-    base_url = config["model_server_base_url"]
+    api_key = MODEL_API_KEY
+    base_url = MODEL_SERVER_BASE_URL
 
     # call the workspaces function
     workspaces(api_key, base_url)
