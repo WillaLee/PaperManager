@@ -17,11 +17,9 @@ export const uploadPaper = async (file) => {
 };
 
 // this function sends a put request to create paper with this fields: summary, keywords and title
-export const createPaper = async (paperId, title, summary, key_words) => {
+export const updateTitle = async (paperId, title) => {
   return await api.put(`/papers/${paperId}/`, {
     title,
-    summary,
-    key_words
   });
 };
 
@@ -81,5 +79,10 @@ export const createLabel = async (name) => {
   const response = await api.post('/labels/', { name });
   return response.data;
 };
+
+export const getSummarySpeech = async (paperId) => {
+  const response = await api.get(`/papers/${paperId}/summary-to-speech/`, { responseType: 'blob' });
+  return response.data
+}
 
 export default api;

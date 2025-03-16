@@ -47,10 +47,12 @@ cd PaperManager
 
 2. Create a python virtual environment and install required python modules.
 
-```python
+```bash
 python3 -m venv .venv
 source .venv/bin/activate # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+wget https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+wget https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
 ```
 
 3. Configure the database

@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'PaperSummarizer'
+    'PaperSummarizer',
+    'ChatBot'
 ]
 
 MIDDLEWARE = [
@@ -141,3 +142,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Keys for AnythingLLM
+MODEL_API_KEY=os.getenv('MODEL_API_KEY', 'default_model_api_key_not_found') # AnythingLLM API Key
+MODEL_SERVER_BASE_URL=os.getenv('MODEL_SERVER_BASE_URL', 'default_model_server_base_url') # AnythingLLM API endpoint
+WORKSPACE_SLUG=os.getenv('WORKSPACE_SLUG', 'default_workspace_snug_not_found') # AnythingLLM API workspace slug
