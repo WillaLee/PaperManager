@@ -11,7 +11,6 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
 - **AI-Powered Summarization(RAG-Enhanced)**: 
   - **Technology**: Uses Llama 3.2 via AnythingLLM for on-device processing.  
   - **Accuracy**: Retrieval-Augmented Generation (RAG) ensures context-aware summaries with minimal hallucinations.  
-  - **Customization**: Adjust summary length or focus areas (methodology, results, etc.).
 
 - **Categorization Assistance**:  
   - Automatically suggests relevant labels based on content.  
@@ -21,6 +20,7 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
   - Extracts metadata (DOI, authors, journal, etc.).  
   - Generates and exports references in BibTeX format for LaTeX compatibility.  
   - Provides an interactive UI to edit and validate citations.
+  - Checks H-index to assess the credibility of sources and determine if they are worth citing.
 
 - **Text-to-Speech (TTS)**: Converts summaries into natural-sounding speech for accessibility and multitasking.
 
@@ -120,9 +120,9 @@ anythingllm start
 
 # Usage (Prompts) 
 - Upload research paper (PDF)
-- Set summary length/focus area (optional)
 - Generate AI-powered summary
 - Edit tags/categories (optional)
+- Generate citation
 - Export results or convert to speech
 
 ## License
