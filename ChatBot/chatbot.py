@@ -208,6 +208,13 @@ class Chatbot:
     def add_paper_to_rag(self, pdf_file):
         document_location = self.upload_research_paper(pdf_file)
         self.move_file_to_workspace(document_location)
+    
+    # Provide an IEEE citation for the paper
+    def get_citations(self, paper_name):
+        prompt = f"Provide an IEEE citation for the paper: {paper_name}"
+        citation = self.chat(prompt)
+        print("\nGenerated IEEE Citation:")
+        print(citation)
 
     
 # For debug
@@ -225,6 +232,6 @@ if __name__ == '__main__':
     # with open(file_path, 'rb') as file:
     #    chatbot.add_paper_to_rag(file)
     
-    chatbot.get_summary("Attention is all you need")
+    chatbot.get_citations("Attention is all you need")
     stop_loading = True
     
