@@ -32,11 +32,11 @@ A comprehensive tool for managing academic papers, featuring AI-driven summariza
 
 # Authors
 team: 360HackAI
-Jenny Huang: https://www.linkedin.com/in/jenny-chenyi-huang/
-Caronila Li: https://www.linkedin.com/in/carolina-li/
-Kaya Rao: https://www.linkedin.com/in/kaya-rao/
-Livia Li: https://www.linkedin.com/in/livia-li/
-Yijia Zhan: https://www.linkedin.com/in/yijia-zhan/
+- Jenny Huang: https://www.linkedin.com/in/jenny-chenyi-huang/
+- Caronila Li: https://www.linkedin.com/in/carolina-li/
+- Kaya Rao: https://www.linkedin.com/in/kaya-rao/
+- Livia Li: https://www.linkedin.com/in/livia-li/
+- Yijia Zhan: https://www.linkedin.com/in/yijia-zhan/
 
 # Backend Installation
 
